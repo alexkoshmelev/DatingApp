@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using API.Data;
 using API.Extensions;
 using API.Interfaces;
+using API.Middleware;
 using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -28,7 +29,6 @@ namespace API
         public Startup(IConfiguration config)
         {
             _config = config;
-
         }
 
         public IConfiguration Configuration { get; }
@@ -41,7 +41,7 @@ namespace API
             services.AddControllers();
             services.AddCors();
 
-            services.AddIdentityServces(_config);
+            services.AddIdentityServices(_config);
 
             services.AddSwaggerGen(c =>
             {
@@ -52,9 +52,10 @@ namespace API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseMiddleware<ExceptionMiddleware>();
+
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"));
             }
@@ -64,7 +65,6 @@ namespace API
             app.UseRouting();
 
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"));
-            //app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
             app.UseAuthentication();
 
